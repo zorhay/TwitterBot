@@ -1,4 +1,6 @@
+__pycache__
 venv/
 *.pyc
 .idea/
 src/config.py
+WebCrawler/

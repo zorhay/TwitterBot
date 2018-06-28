@@ -1,4 +1,5 @@
 from auth import api
+import tweepy
 
 def _normalise_tweet(tweet_text):
     while '  ' in tweet_text:
@@ -42,3 +43,31 @@ def has_url(tweet):
         if url.get('url') is not None:
             return True
     return False
+
+
+def user_scraper(language='hy', activity=0, count=100):
+    followers = api.followers()
+    for follower in followers:
+        follower_followers = follower.followers()
+        for follower_follower in follower_followers:
+            # TODO check follower_follower write in armenian
+            # TODO check follower_follower is active
+            follower_follower.follow()
+
+
+def check_user_tweet_language(user_name):
+    '''
+    :param user_name: user nickname
+    :return: user tweets general language
+    '''
+    pass
+
+
+def check_user_activity(user_name):
+    '''
+    :param user_name: user nickname
+    :return: tweets middle consistency
+    '''
+    pass
+
+# TODO create user last readed tweet id and user id table
