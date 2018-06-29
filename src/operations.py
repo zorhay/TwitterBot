@@ -34,9 +34,6 @@ def get_not_reply_tweets(tweets):
 def tweet_is_not_complete(tweet_text):
     return not tweet_text.strip().endswith(('.', '։', ':'))
 
-def get_text_from_tweet(tweet):
-    return tweet._json.get('text')
-
 def has_url(tweet):
     urls = tweet._json.get('entities').get('urls')
     for url in urls:
@@ -44,30 +41,9 @@ def has_url(tweet):
             return True
     return False
 
-
-def user_scraper(language='hy', activity=0, count=100):
-    followers = api.followers()
-    for follower in followers:
-        follower_followers = follower.followers()
-        for follower_follower in follower_followers:
-            # TODO check follower_follower write in armenian
-            # TODO check follower_follower is active
-            follower_follower.follow()
-
-
-def check_user_tweet_language(user_name):
-    '''
-    :param user_name: user nickname
-    :return: user tweets general language
-    '''
-    pass
-
-
-def check_user_activity(user_name):
-    '''
-    :param user_name: user nickname
-    :return: tweets middle consistency
-    '''
-    pass
-
-# TODO create user last readed tweet id and user id table
+def print_not_complete_tweets(username, count):
+    tweets = get_user_tweets(username, count)
+    for tweet in tweets:
+        tweet_text = get_text_from_tweet(tweet)
+        if (not has_url(tweet)) and tweet_is_not_complete(tweet_text):
+            print(tweet_text)
