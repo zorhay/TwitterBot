@@ -1,6 +1,31 @@
+import tweepy
 from auth import api
 from operations import *
 from datetime import datetime
+
+def tweet_scraper():
+    scraped_ids_file = '../other/scrap_ids.txt'
+    user_ids = api.friends_ids()
+    with open(scraped_ids_file, 'r') as f:
+        scraped_ids = f.readlines()
+
+    bad_chars = ['\n', '\'', '\"', '\\']
+    for i in range(len(scraped_ids)):
+        for bad_char in bad_chars:
+            scraped_ids[i] = scraped_ids[i].strip(bad_char)
+        scraped_ids[i] = int(scraped_ids[i])
+
+
+    for user_id in list(set(user_ids) - set(scraped_ids)):
+        try:
+            user = api.get_user(id=user_id)
+        except tweepy.error.TweepError:
+            continue
+
+        save_all_tweet_by_username(user.screen_name)
+        with open(scraped_ids_file, 'a') as f:
+            f.write(user.id_str + '\n')
+
 
 def save_all_tweet_by_username(screen_name, output_file=None):
     '''
@@ -8,6 +33,8 @@ def save_all_tweet_by_username(screen_name, output_file=None):
     :param output_file: tweets store file path
     :return: saved tweet count
     '''
+
+    # TODO solve limit problem
 
     if output_file is None:
         output_file = '../data/' + screen_name + '.txt'
@@ -31,14 +58,13 @@ def save_all_tweet_by_username(screen_name, output_file=None):
         with open(output_file, 'a') as f:
             for tweet in tweets:
                 # TODO optimise
-                tweet_text = tweet.text
-                urls = get_urls_from_tweet(tweet)
-                tweet_text = clean_urls_from_tweet_text(tweet_text, urls)
-                tweet_text = clean_usernames_from_tweet_text(tweet_text)
-                f.write(tweet_text + '\n')
+                tweet_text = tweet_processing(tweet)
+                if tweet_text:
+                    f.write(tweet_text + '\n')
+
             print('{} saved.'.format(tweets.__len__()))
             saved_tweet_count += tweets.__len__()
-    print(saved_tweet_count)
+    print(screen_name, saved_tweet_count)
     return saved_tweet_count
 
 
@@ -53,15 +79,25 @@ def user_scraper(language='hy', activity=0.25, count=100):
     # [tweet for tweet in tweepy.Cursor(api.user_timeline, screen_name=name).items()]
     # TODO solve limit problem
 
-    followers = api.friends()
+    friend_ids = api.friends_ids()
     while count > 0:
-        for follower in followers:
-            f_fs = follower.followers()
-            for f_f in f_fs:
+        for friend_id in friend_ids:
+            try:
+                friend = api.get_user(id=friend_id)
+            except tweepy.error.TweepError:
+                continue
+            for ff_id in friend.followers_ids():
+                try:
+                    f_f = api.get_user(id=ff_id)
+                except tweepy.error.TweepError:
+                    continue
+                if f_f.id in friend_ids:
+                    continue
                 if not f_f.protected and \
                     check_user_tweet_language(f_f.screen_name) == language and \
                     check_user_activity(f_f.screen_name) > activity:
                     f_f.follow()
+                    friend_ids.append(f_f.id)
                     count -= 1
         break
 
@@ -71,7 +107,10 @@ def check_user_tweet_language(screen_name):
     :param screen_name: user nickname
     :return: main language of tweets
     '''
-    tweets = api.user_timeline(screen_name=screen_name, count=200)
+    try:
+        tweets = api.user_timeline(screen_name=screen_name, count=200)
+    except tweepy.error.TweepError:
+        return None
     if not tweets:
         return None
 
@@ -90,8 +129,11 @@ def check_user_activity(screen_name):
     :param screen_name: user nickname
     :return: tweets middle consistency
     '''
-    tweets = api.user_timeline(screen_name=screen_name, count=200)
-    if tweets.__len__() < 10 or (datetime.utcnow() - tweets[0].created_at).days > 30:
+    try:
+        tweets = api.user_timeline(screen_name=screen_name, count=200, include_rts=False)
+    except tweepy.error.TweepError:
+        return 0
+    if tweets.__len__() < 100 or (datetime.utcnow() - tweets[0].created_at).days > 15:
         return 0
 
     delta_time = (tweets[0].created_at - tweets[-1].created_at)
