@@ -1,6 +1,6 @@
-import tweepy
-import re
 from auth import api
+import re
+import tweepy
 
 def _normalise_tweet(tweet_text):
     while '  ' in tweet_text:
@@ -8,12 +8,11 @@ def _normalise_tweet(tweet_text):
     return tweet_text.strip()
 
 def get_user_tweets(username, count):
-    return api.user_timeline(screen_name = username, count = count, include_rts = False)
+    return api.user_timeline(screen_name = username, count = count, include_rts = True)
 
 def get_urls_from_tweet(tweet):
     urls = tweet._json.get('entities').get('urls')
-    media_urls = tweet._json.get('entities').get('media')
-    return [url.get('url') for url in urls + media_urls]
+    return [url.get('url') for url in urls]
 
 def clean_urls_from_tweet_text(tweet_text, urls):
     for url in urls:
@@ -50,6 +49,7 @@ def print_not_complete_tweets(username, count):
         if (not has_url(tweet)) and tweet_is_not_complete(tweet_text):
             print(tweet_text)
 
+
 def tweet_processing(tweet):
     if tweet.lang != 'hy':
         return None
@@ -75,3 +75,18 @@ def tweet_processing(tweet):
     tweet_text = re.sub(r'[^ա-ֆԱ-Ֆ ,․։"«»՝՜՞՛]', '', tweet_text)
     return _normalise_tweet(tweet_text)
 
+
+def tweet_processing_json(tweet):
+    if tweet.lang != 'hy':
+        return None
+    tweet_text = _normalise_tweet(re.sub(r'[^ա-ֆԱ-Ֆ ,․։"«»՝՜՞՛]', '', tweet.text))
+
+    return {
+        "name": tweet.author.name,
+        "screen_name": tweet.author.screen_name,
+        "text": tweet_text,
+        "hashtags": tweet.entities.get('hashtags'),
+        "is_reply": tweet.in_reply_to_status_id is not None,
+        "create_time": str(tweet.created_at),
+        "language": tweet.lang
+            }

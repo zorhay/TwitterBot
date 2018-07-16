@@ -4,3 +4,5 @@ venv/
 .idea/
 src/config.py
 WebCrawler/
+*.json
+*.txt

@@ -2,6 +2,7 @@ import tweepy
 from auth import api
 from operations import *
 from datetime import datetime
+from helpers import *
 
 def tweet_scraper():
     scraped_ids_file = '../other/scrap_ids.txt'
@@ -22,7 +23,7 @@ def tweet_scraper():
         except tweepy.error.TweepError:
             continue
 
-        save_all_tweet_by_username(user.screen_name)
+        save_all_tweet_json_by_username(user.screen_name)
         with open(scraped_ids_file, 'a') as f:
             f.write(user.id_str + '\n')
 
@@ -64,6 +65,52 @@ def save_all_tweet_by_username(screen_name, output_file=None):
 
             print('{} saved.'.format(tweets.__len__()))
             saved_tweet_count += tweets.__len__()
+    print(screen_name, saved_tweet_count)
+    return saved_tweet_count
+
+
+def save_all_tweet_json_by_username(screen_name, output_file=None):
+    '''
+    :param screen_name: user nickname
+    :param output_file: tweets store file path
+    :return: saved tweet count
+    '''
+
+    # TODO solve limit problem
+
+    if output_file is None:
+        output_file = '../data/' + screen_name + '.json'
+    count = api.get_user(screen_name).statuses_count
+
+    try:
+        max_tweet_id = api.user_timeline(screen_name=screen_name, count=1)[0].id
+    except IndexError:
+        return 0
+
+    saved_tweet_count = 0
+    while count > 0:
+        tweets = api.user_timeline(screen_name=screen_name, count=count, max_id=max_tweet_id)
+
+        if tweets.__len__() == 0:
+            break
+        else:
+            count -= tweets.__len__()
+
+        max_tweet_id = tweets.max_id
+        if max_tweet_id is None:
+            break
+
+        tweets_json = [] 
+        for tweet in tweets:
+            # TODO optimise
+            tweet_json = tweet_processing_json(tweet)
+            if tweet_json:
+                tweets_json.append(tweet_json)
+
+
+        save_dict_list(tweets_json, output_file)
+        print(tweets.__len__(), 'saved.')
+        saved_tweet_count += tweets.__len__()
     print(screen_name, saved_tweet_count)
     return saved_tweet_count
 
