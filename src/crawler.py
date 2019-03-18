@@ -4,6 +4,7 @@ from operations import *
 from datetime import datetime
 from helpers import *
 
+
 def tweet_scraper():
     scraped_ids_file = '../other/scrap_ids.txt'
     user_ids = api.friends_ids()
@@ -15,7 +16,6 @@ def tweet_scraper():
         for bad_char in bad_chars:
             scraped_ids[i] = scraped_ids[i].strip(bad_char)
         scraped_ids[i] = int(scraped_ids[i])
-
 
     for user_id in list(set(user_ids) - set(scraped_ids)):
         try:
@@ -106,7 +106,6 @@ def save_all_tweet_json_by_username(screen_name, output_file=None):
             tweet_json = tweet_processing_json(tweet)
             if tweet_json:
                 tweets_json.append(tweet_json)
-
 
         save_dict_list(tweets_json, output_file)
         print(tweets.__len__(), 'saved.')

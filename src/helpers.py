@@ -1,5 +1,6 @@
 import json
 
+
 def save_dict_list(dict_list, out_file='outh_data.json'):
     with open(out_file, 'a') as f:
         json.dump(dict_list, f)
