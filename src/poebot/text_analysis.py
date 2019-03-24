@@ -74,10 +74,11 @@ class ArmenianLanguage(LanguageModelBase):
         return line_ending.strip()
 
     def reverse(self, text):
-        text = self._normalize_for_algorithm(text)[::-1]
+        text = self._normalize_for_algorithm(text)
         text = text[::-1]
         return self._normalize_for_human(text)
 
 
 if __name__ == '__main__':
-    pass
+    lang = ArmenianLanguage()
+    print(lang.reverse('չարուբարի'))
