@@ -50,7 +50,7 @@ class WordRandom(object):
     def end_with(self, line_ending, syllable_count, exception_word=''):
         ending_word = self._find_word_with_ending(line_ending, exception_word)
         if not ending_word:
-            raise ValueError
+            raise ValueError('Specified ending not found, try again.')
         taken_syllable = len(self.language.divided_into_syllables(ending_word))
         line = self.get_line(syllable_count - taken_syllable)
         return line + ' ' + ending_word
