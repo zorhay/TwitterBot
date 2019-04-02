@@ -23,23 +23,8 @@ class ArmenianLanguage(LanguageModelBase):
     punctuation_marks = {',', '․', '։', '՞', '՝', '՜', '՛', '«', '»', '֊', '(', ')', ' '}
 
     def divide_words(self, line):
-        while '  ' in line:
-            line = line.replace('  ', ' ')
+        line = ' '.join(line.split())
         return [word.strip("".join(self.punctuation_marks)) for word in line.split(' ')]
-
-    @staticmethod
-    def _normalize_for_algorithm(text):
-        text = text.lower()
-        while 'ու' in text:
-            text = text.replace('ու', '&')
-        return text
-
-    @staticmethod
-    def _normalize_for_human(text, capitalize=False):
-        text = text.lower()
-        while '&' in text:
-            text = text.replace('&', 'ու')
-        return text.capitalize() if capitalize else text
 
     def divided_into_syllables(self, word):
         word = self._normalize_for_algorithm(word)
@@ -78,7 +63,20 @@ class ArmenianLanguage(LanguageModelBase):
         text = text[::-1]
         return self._normalize_for_human(text)
 
+    @staticmethod
+    def _normalize_for_algorithm(text):
+        return text.lower().replace('ու', '&')
 
-if __name__ == '__main__':
-    lang = ArmenianLanguage()
-    print(lang.reverse('չարուբարի'))
+    @staticmethod
+    def _normalize_for_human(text, capitalize=False):
+        text = text.lower().replace('&', 'ու')
+        return text.capitalize() if capitalize else text
+
+    @staticmethod
+    def clear_text(file_path):
+        import re
+        with open(file_path, 'r') as f:
+            text = f.read()
+        cleared_text = re.sub(r'[^ա-ֆԱ-Ֆ ,]', '', text)
+        with open(file_path, 'w') as f:
+            f.write(cleared_text)
