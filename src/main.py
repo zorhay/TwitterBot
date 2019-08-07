@@ -1,18 +1,17 @@
 import time
-import tweepy
-import auth
-from operations import *
-from crawler import *
+from tweepy import RateLimitError
+from bot_api import authentication, TweetScraper
 
-api = auth.authentication()
+api = authentication()
 
 
 def main():
+    tweet_scraper = TweetScraper(api=api)
     while True:
         try:
-            tweet_scraper()
+            tweet_scraper.run()
             break
-        except tweepy.RateLimitError as e:
+        except RateLimitError as e:
             print(e, '\nwait 15 minutes')
             time.sleep(15 * 60)
 
