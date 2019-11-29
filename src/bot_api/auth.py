@@ -1,5 +1,5 @@
 import tweepy
-from config import credentials
+from .config import credentials
 
 api = tweepy.API()
 
