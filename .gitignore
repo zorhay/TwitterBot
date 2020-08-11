@@ -3,6 +3,7 @@ venv/
 *.pyc
 .idea/
 src/bot_api/config.py
+src/telegram_api/config.py
 WebCrawler/
 *.json
 *.txt
