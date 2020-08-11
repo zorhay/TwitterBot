@@ -1,6 +1,6 @@
 import time
 from tweepy import RateLimitError
-from bot_api import authentication, TweetScraper
+from src.bot_api import authentication, TweetScraper
 
 api = authentication()
 
